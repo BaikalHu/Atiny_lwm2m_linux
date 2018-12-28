@@ -179,7 +179,7 @@ ifeq ($(WITH_LWM2M), yes)
 			-D LWM2M_CLIENT_MODE
 endif
 ifneq ($(OTA_IS_NEED_DTLS)_$(WITH_DTLS), no_no)
-		C_DEFS += -D MBEDTLS_CONFIG_FILE=\"los_mbedtls_config.h\"
+		C_DEFS += -D MBEDTLS_CONFIG_FILE=\"los_mbedtls_config_x509.h\"
 	ifeq ($(USE_MBEDTLS_DEBUG_C), yes)
 		C_DEFS += -DMBEDTLS_DEBUG_C
 	endif
@@ -255,8 +255,9 @@ LWM2M_INC = \
         C_INCLUDES += $(LWM2M_INC)
 endif
 
-
-
+LOG_INC = \
+        -I $(TOP_DIR)/include/log
+        C_INCLUDES += $(LOG_INC)
 
 DEMO_INC = \
         -I $(TOP_DIR)/demos

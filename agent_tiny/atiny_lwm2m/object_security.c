@@ -486,6 +486,12 @@ void copy_security_object(lwm2m_object_t *objectDest, lwm2m_object_t *objectSrc)
             instanceDest->publicIdentity = lwm2m_strdup(instanceSrc->publicIdentity);
             instanceDest->secretKey = lwm2m_strdup(instanceSrc->secretKey);
         }
+        else if (instanceSrc->securityMode == LWM2M_SECURITY_MODE_CERTIFICATE)
+        {
+            instanceDest->publicIdentity = lwm2m_strdup(instanceSrc->publicIdentity);
+            instanceDest->secretKey = lwm2m_strdup(instanceSrc->secretKey);
+            instanceDest->serverPublicKey = lwm2m_strdup(instanceSrc->serverPublicKey);
+        }
         instanceSrc = (security_instance_t *)instanceSrc->next;
         if (previousInstanceDest == NULL)
         {
@@ -534,6 +540,12 @@ void clean_security_object(lwm2m_object_t *objectP)
             lwm2m_free(securityInstance->publicIdentity);
             lwm2m_free(securityInstance->secretKey);
         }
+        else if (securityInstance->securityMode == LWM2M_SECURITY_MODE_CERTIFICATE)
+        {
+            lwm2m_free(securityInstance->publicIdentity);
+            lwm2m_free(securityInstance->secretKey);
+            lwm2m_free(securityInstance->serverPublicKey);
+        }
         lwm2m_free(securityInstance);
     }
 
@@ -556,6 +568,9 @@ lwm2m_object_t *get_security_object(uint16_t serverId, atiny_param_t *atiny_para
     char *bsPskId = NULL;
     char *psk = NULL;
     uint16_t pskLen = 0;
+    char *ca_cert = NULL;
+    char *cli_cert = NULL;
+    char *cli_key = NULL;
 
     const uint8_t INS_IOT_SERVER_FLAG = 0x01;
     const uint8_t INS_BS_SERVER_FLAG = 0x02;
@@ -640,9 +655,18 @@ lwm2m_object_t *get_security_object(uint16_t serverId, atiny_param_t *atiny_para
         // After instance id is initialized
         securityObj->instanceList = LWM2M_LIST_ADD(securityObj->instanceList, targetP);
 
-        bsPskId = atiny_params->security_params[security_params_index].psk_Id;
-        psk = atiny_params->security_params[security_params_index].psk;
-        pskLen = atiny_params->security_params[security_params_index].psk_len;
+        if(atiny_params->security_params[security_params_index].security_type == CLOUD_SECURITY_TYPE_PSK)
+        {
+            bsPskId = atiny_params->security_params[security_params_index].cloud_security_u.psk.psk_Id;
+            psk = atiny_params->security_params[security_params_index].cloud_security_u.psk.psk;
+            pskLen = atiny_params->security_params[security_params_index].cloud_security_u.psk.psk_len;
+        }
+        if(atiny_params->security_params[security_params_index].security_type == CLOUD_SECURITY_TYPE_CA)
+        {
+            ca_cert = atiny_params->security_params[security_params_index].cloud_security_u.ca.ca_crt;
+            cli_cert = atiny_params->security_params[security_params_index].cloud_security_u.ca.client_crt;
+            cli_key = atiny_params->security_params[security_params_index].cloud_security_u.ca.client_key;
+        }
 
 
         if (atiny_params->security_params[security_params_index].server_ip && atiny_params->security_params[security_params_index].server_port)
@@ -694,6 +718,35 @@ lwm2m_object_t *get_security_object(uint16_t serverId, atiny_param_t *atiny_para
                 memcpy(targetP->secretKey, psk, pskLen);
                 targetP->secretKeyLen = pskLen;
             }
+        }
+        else if(ca_cert != NULL && cli_cert != NULL && cli_key != NULL)
+        {
+            targetP->securityMode = LWM2M_SECURITY_MODE_CERTIFICATE;
+            targetP->serverPublicKey = (char *)lwm2m_strdup(ca_cert);
+            if(targetP->serverPublicKey == NULL)
+            {
+                clean_security_object(securityObj);
+                return NULL;
+            }
+            targetP->serverPublicKeyLen = strlen(ca_cert) + 1;
+
+            targetP->publicIdentity = (char *)lwm2m_strdup(cli_cert);
+            if(targetP->publicIdentity == NULL)
+            {
+                clean_security_object(securityObj);
+                return NULL;
+            }
+            targetP->publicIdLen = strlen(cli_cert) + 1;
+
+            targetP->secretKey = (char *)lwm2m_strdup(cli_key);
+            if(targetP->secretKey == NULL)
+            {
+                clean_security_object(securityObj);
+                return NULL;
+            }
+            targetP->secretKeyLen = strlen(cli_key) + 1;
+			printf("~~~kenlen:%d\n", targetP->secretKeyLen);
+
         }
 
         targetP->shortID = serverId;

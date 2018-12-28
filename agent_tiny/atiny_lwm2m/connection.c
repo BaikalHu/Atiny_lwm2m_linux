@@ -163,7 +163,14 @@ int connection_connect_dtls(connection_t *connP, security_instance_t *targetP, c
     int ret;
     dtls_shakehand_info_s info;
 
-    connP->net_context = (void *)dtls_ssl_new_with_psk(targetP->secretKey, targetP->secretKeyLen, targetP->publicIdentity, client_or_server);
+printf("targetP->secretKey:%s\n", targetP->secretKey);
+	printf("targetP->secretKeyLen:%d\n", targetP->secretKeyLen);
+
+    if(targetP->securityMode == LWM2M_SECURITY_MODE_PRE_SHARED_KEY)
+        connP->net_context = (void *)dtls_ssl_new_with_psk(targetP->secretKey, targetP->secretKeyLen, targetP->publicIdentity, client_or_server);
+    else if(targetP->securityMode == LWM2M_SECURITY_MODE_CERTIFICATE)
+        connP->net_context = (void *)dtls_ssl_new_with_ca(targetP->serverPublicKey, targetP->serverPublicKeyLen, targetP->publicIdentity, targetP->publicIdLen, targetP->secretKey, targetP->secretKeyLen, client_or_server);
+
     if (NULL == connP->net_context)
     {
         ATINY_LOG(LOG_INFO, "connP->ssl is NULL in connection_create");

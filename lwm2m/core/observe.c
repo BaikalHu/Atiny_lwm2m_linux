@@ -232,6 +232,9 @@ uint8_t observe_handleRequest(lwm2m_context_t *contextP,
         memcpy(watcherP->token, message->token, message->token_len);
         watcherP->active = true;
         watcherP->lastTime = lwm2m_gettime();
+		LOG_ARG("debug~~~~~~~~~~~~~~~~0x%x\n\n", message->options);
+		watcherP->format = utils_convertMediaType(LWM2M_CONTENT_JSON);
+		#if 0
         if (IS_OPTION(message, COAP_OPTION_ACCEPT))
         {
             watcherP->format = utils_convertMediaType((coap_content_type_t)message->accept[0]);
@@ -240,6 +243,7 @@ uint8_t observe_handleRequest(lwm2m_context_t *contextP,
         {
             watcherP->format = LWM2M_CONTENT_TLV;
         }
+		#endif
 
         if (LWM2M_URI_IS_SET_RESOURCE(uriP))
         {

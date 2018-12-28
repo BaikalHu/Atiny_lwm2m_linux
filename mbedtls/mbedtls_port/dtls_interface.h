@@ -72,6 +72,7 @@
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/error.h"
 #include "mbedtls/timing.h"
+#include "mbedtls/x509_crt.h"
 
 typedef struct
 {
@@ -97,6 +98,7 @@ typedef struct
 void dtls_int(void);
 
 mbedtls_ssl_context *dtls_ssl_new_with_psk(char *psk, unsigned psk_len, char *psk_identity, char plat_type);
+mbedtls_ssl_context *dtls_ssl_new_with_ca(char *ca, unsigned ca_len, char *cli_cert, unsigned cli_cert_len, char *cli_key, unsigned cli_key_len, char plat_type);
 
 int dtls_shakehand(mbedtls_ssl_context *ssl, const dtls_shakehand_info_s *info);
 

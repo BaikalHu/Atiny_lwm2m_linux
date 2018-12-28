@@ -159,12 +159,32 @@ typedef struct
     char* binding;               /*目前支持U或者UQ*/
     int   life_time;             /*必选，默认50000,如过短，则频繁发送update报文，如过长，在线状态更新时间长*/
     unsigned int  storing_cnt;   /*storing为true时，lwm2m缓存区总字节个数*/
- 
+
     atiny_bootstrap_type_e  bootstrap_mode; /* bootstrap mode  */
     int   hold_off_time; /* bootstrap hold off time for server initiated bootstrap */
 } atiny_server_param_t;
 
+typedef enum
+{
+    CLOUD_SECURITY_TYPE_NONE,
+    CLOUD_SECURITY_TYPE_PSK,
+    CLOUD_SECURITY_TYPE_CA,
+    CLOUD_SECURITY_TYPE_MAX
+} cloud_security_type_e;
 
+typedef struct
+{
+    char* psk_Id;
+    char* psk;
+    unsigned short psk_len;
+} cloud_security_psk_t;
+
+typedef struct
+{
+    char* ca_crt;
+    char* client_crt;
+    char* client_key;
+} cloud_security_ca_t;
 
 
 
@@ -173,10 +193,12 @@ typedef struct
     char* server_ip;
     char* server_port;
 
-    char* psk_Id;
-    char* psk;
-    unsigned short psk_len;
-
+    cloud_security_type_e security_type;
+    union
+    {
+        cloud_security_psk_t psk;
+        cloud_security_ca_t ca;
+    } cloud_security_u;
 } atiny_security_param_t;
 
 

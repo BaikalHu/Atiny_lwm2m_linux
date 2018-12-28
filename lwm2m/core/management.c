@@ -253,6 +253,8 @@ uint8_t dm_handleRequest(lwm2m_context_t *contextP,
                 result = observe_handleRequest(contextP, uriP, serverP, size, dataP, message, response);
                 if (COAP_205_CONTENT == result)
                 {
+                    format = utils_convertMediaType(LWM2M_CONTENT_JSON);
+                    #if 0
                     if (IS_OPTION(message, COAP_OPTION_ACCEPT))
                     {
                         format = utils_convertMediaType((coap_content_type_t)message->accept[0]);
@@ -261,6 +263,7 @@ uint8_t dm_handleRequest(lwm2m_context_t *contextP,
                     {
                         format = LWM2M_CONTENT_TLV;
                     }
+					#endif
 
                     if(dm_isUriOpaqueHandle(uriP))
                     {
@@ -306,6 +309,8 @@ uint8_t dm_handleRequest(lwm2m_context_t *contextP,
             {
                 format = utils_convertMediaType((coap_content_type_t)message->accept[0]);
             }
+			//debug
+			format = utils_convertMediaType(LWM2M_CONTENT_JSON);
 
             result = object_read(contextP, uriP, &format, &buffer, &length, serverP->shortID);
         }
